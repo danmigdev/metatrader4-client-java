@@ -25,6 +25,7 @@ public class NewOrder {
         private Integer slPoints;
         private Integer tpPoints;
         private String comment;
+        private Integer magicNumber;
 
         private Builder() {}
 
@@ -148,6 +149,15 @@ public class NewOrder {
             this.comment = comment;
             return this;
         }
+
+        /**
+         * @param magicNumber The magic number to identify orders.  Optional.
+         * @return This Builder.
+         */
+        public Builder setMagicNumber(Integer magicNumber) {
+            this.magicNumber = magicNumber;
+            return this;
+        }
     }
 
     public interface SymbolStep {
@@ -176,6 +186,8 @@ public class NewOrder {
     @JsonProperty("tp_points")
     public final Integer tpPoints;
     public final String comment;
+    @JsonProperty("magic_number")
+    public final Integer magicNumber;
 
     private NewOrder(Builder builder) {
         // do some parameter validation
@@ -196,5 +208,6 @@ public class NewOrder {
         this.slPoints = builder.slPoints;
         this.tpPoints = builder.tpPoints;
         this.comment = (builder.comment == null ? "" : builder.comment);
+        this.magicNumber = builder.magicNumber;
     }
 }
