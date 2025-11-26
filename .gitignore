@@ -1,2 +1,5 @@
 # IDE build output
 /target
+
+# IDE settings
+.idea/
