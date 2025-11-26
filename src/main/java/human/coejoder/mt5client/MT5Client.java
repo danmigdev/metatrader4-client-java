@@ -1,18 +1,13 @@
-package human.coejoder.mt4client;
+package human.coejoder.mt5client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.InjectableValues;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.BooleanNode;
-import com.fasterxml.jackson.databind.node.IntNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.LongNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.databind.node.*;
 import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
+import human.coejoder.mt4client.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.zeromq.SocketType;
@@ -24,9 +19,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MT4Client implements MT4ClientInterface {
+/**
+ * MT5Client - MetaTrader 5 client with support for long ticket numbers.
+ *
+ * This client is compatible with the MQL5 version of the ZeroMQ server,
+ * which uses ulong (long in Java) for ticket numbers instead of int.
+ */
+public class MT5Client implements MT5ClientInterface {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MT4Client.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MT5Client.class);
     private static final int ENABLED = 1;
     private static final int DEFAULT_REQUEST_TIMEOUT_MILLIS = 10000;
     private static final int DEFAULT_RESPONSE_TIMEOUT_MILLIS = 10000;
@@ -49,7 +50,7 @@ public class MT4Client implements MT4ClientInterface {
     private static final TypeReference<List<String>> LIST_OF_STRINGS = new TypeReference<>() {};
     private static final TypeReference<HashMap<String, Symbol>> MAP_OF_SYMBOLS = new TypeReference<>() {};
     private static final TypeReference<HashMap<String, Signal>> MAP_OF_SIGNALS = new TypeReference<>() {};
-    private static final TypeReference<List<Order>> LIST_OF_ORDERS = new TypeReference<>() {};
+    private static final TypeReference<List<MT5Order>> LIST_OF_MT5_ORDERS = new TypeReference<>() {};
     private static final TypeReference<List<OHLCV>> LIST_OF_OHLCV = new TypeReference<>() {};
 
     private final ZContext context;
@@ -57,19 +58,19 @@ public class MT4Client implements MT4ClientInterface {
     private final ObjectMapper objectMapper;
 
     /**
-     * Constructor.  Initialize the REQ socket and connect to the MT4 server.
+     * Constructor.  Initialize the REQ socket and connect to the MT5 server.
      *
      * @param address           The address of the server's listening socket.
      * @param requestTimeoutMs  The number of milliseconds to wait for a request to be sent.
      * @param responseTimeoutMs The number of milliseconds to wait for a response to be received.
      */
-    public MT4Client(String address, int requestTimeoutMs, int responseTimeoutMs) {
+    public MT5Client(String address, int requestTimeoutMs, int responseTimeoutMs) {
         // create JSON object mapper
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new ParameterNamesModule());
 
         InjectableValues.Std injectableValues = new InjectableValues.Std();
-        injectableValues.addValue(MT4Client.class, this);
+        injectableValues.addValue(MT5Client.class, this);
         objectMapper.setInjectableValues(injectableValues);
 
         // create and configure REQ socket
@@ -88,9 +89,9 @@ public class MT4Client implements MT4ClientInterface {
      * Constructor.  Uses a {@link #DEFAULT_REQUEST_TIMEOUT_MILLIS default request timeout} and a {@link
      * #DEFAULT_RESPONSE_TIMEOUT_MILLIS default response timeout}.
      *
-     * @see #MT4Client(String, int, int)
+     * @see #MT5Client(String, int, int)
      */
-    public MT4Client(String address) {
+    public MT5Client(String address) {
         this(address, DEFAULT_REQUEST_TIMEOUT_MILLIS, DEFAULT_RESPONSE_TIMEOUT_MILLIS);
     }
 
@@ -246,7 +247,7 @@ public class MT4Client implements MT4ClientInterface {
      * @return The numeric result.
      * @throws JsonProcessingException If JSON response fails to parse.
      * @throws MT4Exception            If server had an error.
-     * @see <a href="https://docs.mql4.com/indicators">https://docs.mql4.com/indicators</a>
+     * @see <a href="https://www.mql5.com/en/docs/indicators">https://www.mql5.com/en/docs/indicators</a>
      */
     public double runIndicator(Indicator func) throws JsonProcessingException, MT4Exception {
         return runIndicator(func, DEFAULT_INDICATOR_TIMEOUT);
@@ -260,7 +261,7 @@ public class MT4Client implements MT4ClientInterface {
      * @return The numeric result.
      * @throws JsonProcessingException If JSON response fails to parse.
      * @throws MT4Exception            If server had an error.
-     * @see <a href="https://docs.mql4.com/indicators">https://docs.mql4.com/indicators</a>
+     * @see <a href="https://www.mql5.com/en/docs/indicators">https://www.mql5.com/en/docs/indicators</a>
      */
     public double runIndicator(Indicator func, int timeout) throws JsonProcessingException, MT4Exception {
         ObjectNode request = Request.RUN_INDICATOR.build()
@@ -271,115 +272,111 @@ public class MT4Client implements MT4ClientInterface {
     }
 
     /**
-     * Get the pending and open orders from the Trades tab.
+     * Get the pending orders and open positions.
      *
-     * @return A list of open or pending {@link Order Orders}.
+     * @return A list of open positions and pending orders as {@link MT5Order}s.
      * @throws JsonProcessingException If JSON response fails to parse.
      * @throws MT4Exception            If server had an error.
      */
-    public List<Order> getOrders() throws JsonProcessingException, MT4Exception {
-        return getResponse(Request.GET_ORDERS.build(), LIST_OF_ORDERS);
+    public List<MT5Order> getOrders() throws JsonProcessingException, MT4Exception {
+        return getResponse(Request.GET_ORDERS.build(), LIST_OF_MT5_ORDERS);
     }
 
     /**
-     * Get the deleted and closed orders from the Account History tab.
+     * Get the deleted and closed orders from history.
      *
-     * @return A list of closed {@link Order Orders}.
+     * @return A list of historical {@link MT5Order}s.
      * @throws JsonProcessingException If JSON response fails to parse.
      * @throws MT4Exception            If server had an error.
      */
-    public List<Order> getOrdersHistorical() throws JsonProcessingException, MT4Exception {
-        return getResponse(Request.GET_HISTORICAL_ORDERS.build(), LIST_OF_ORDERS);
+    public List<MT5Order> getOrdersHistorical() throws JsonProcessingException, MT4Exception {
+        return getResponse(Request.GET_HISTORICAL_ORDERS.build(), LIST_OF_MT5_ORDERS);
     }
 
     /**
-     * Get an order by ticket number.  May be pending, open, or closed.
+     * Get an order/position by ticket number (long for MT5 compatibility).
      *
      * @param ticket The ticket number.
-     * @return The {@link Order} object.
+     * @return The {@link MT5Order} object.
      * @throws JsonProcessingException If JSON response fails to parse.
      * @throws MT4Exception            If server had an error.
      */
-    public Order getOrder(int ticket) throws JsonProcessingException, MT4Exception {
+    public MT5Order getOrder(long ticket) throws JsonProcessingException, MT4Exception {
         ObjectNode request = Request.GET_ORDER.build()
-                .set(TICKET, IntNode.valueOf(ticket));
-        return getResponse(request, Order.class);
+                .set(TICKET, LongNode.valueOf(ticket));
+        return getResponse(request, MT5Order.class);
     }
 
     /**
-     * Create a new order.
+     * Create a new order/position.
      *
      * @param newOrder The {@link NewOrder new order request}.
-     * @return The new {@link Order}.
+     * @return The new {@link MT5Order}.
      * @throws JsonProcessingException If JSON response fails to parse.
      * @throws MT4Exception            If server had an error.
-     * @see <a href="https://docs.mql4.com/trading/ordersend">https://docs.mql4.com/trading/ordersend</a>
-     * @see <a href="https://book.mql4.com/appendix/limits">https://book.mql4.com/appendix/limits</a>
+     * @see <a href="https://www.mql5.com/en/docs/trading/ordersend">https://www.mql5.com/en/docs/trading/ordersend</a>
      */
-    public Order orderSend(NewOrder newOrder) throws JsonProcessingException, MT4Exception {
+    public MT5Order orderSend(NewOrder newOrder) throws JsonProcessingException, MT4Exception {
         ObjectNode request = Request.DO_ORDER_SEND.build()
                 .setAll(objectMapper.<ObjectNode>valueToTree(newOrder));
-        return getResponse(request, Order.class);
+        return getResponse(request, MT5Order.class);
     }
 
     /**
-     * Modify a market or pending order.
+     * Modify a position or pending order.
      *
-     * @param modifyOrder The {@link ModifyOrder modify-order request}.
-     * @return The modified {@link Order}.
+     * @param modifyOrder The {@link MT5ModifyOrder modify-order request}.
+     * @return The modified {@link MT5Order}.
      * @throws JsonProcessingException If JSON response fails to parse.
      * @throws MT4Exception            If server had an error.
-     * @see <a href="https://book.mql4.com/trading/ordermodify">https://book.mql4.com/trading/ordermodify</a>
-     * @see <a href="https://book.mql4.com/appendix/limits">https://book.mql4.com/appendix/limits</a>
+     * @see <a href="https://www.mql5.com/en/docs/trading/ordermodify">https://www.mql5.com/en/docs/trading/ordermodify</a>
+     * @see <a href="https://www.mql5.com/en/docs/trading/positionmodify">https://www.mql5.com/en/docs/trading/positionmodify</a>
      */
-    public Order orderModify(ModifyOrder modifyOrder) throws JsonProcessingException, MT4Exception {
+    public MT5Order orderModify(MT5ModifyOrder modifyOrder) throws JsonProcessingException, MT4Exception {
         ObjectNode request = Request.DO_ORDER_MODIFY.build()
                 .setAll(objectMapper.<ObjectNode>valueToTree(modifyOrder));
-        return getResponse(request, Order.class);
+        return getResponse(request, MT5Order.class);
     }
 
     /**
-     * Close an open order.
+     * Close an open position (long ticket for MT5 compatibility).
      *
      * @param ticket The ticket number.
      * @throws JsonProcessingException If JSON response fails to parse.
      * @throws MT4Exception            If server had an error.
-     * @see <a href="https://docs.mql4.com/trading/orderdelete">https://docs.mql4.com/trading/orderdelete</a>
-     * @see <a href="https://book.mql4.com/appendix/limits">https://book.mql4.com/appendix/limits</a>
+     * @see <a href="https://www.mql5.com/en/docs/trading/positionclose">https://www.mql5.com/en/docs/trading/positionclose</a>
      */
-    public void orderClose(int ticket) throws JsonProcessingException, MT4Exception {
+    public void orderClose(long ticket) throws JsonProcessingException, MT4Exception {
         ObjectNode request = Request.DO_ORDER_CLOSE.build()
-                .set(TICKET, IntNode.valueOf(ticket));
+                .set(TICKET, LongNode.valueOf(ticket));
         getResponse(request);
     }
 
     /**
-     * Close an open order.
+     * Close an open position.
      *
-     * @param order The order to close.
+     * @param order The position to close.
      * @throws JsonProcessingException If JSON response fails to parse.
      * @throws MT4Exception            If server had an error.
-     * @see <a href="https://docs.mql4.com/trading/orderdelete">https://docs.mql4.com/trading/orderdelete</a>
-     * @see <a href="https://book.mql4.com/appendix/limits">https://book.mql4.com/appendix/limits</a>
+     * @see <a href="https://www.mql5.com/en/docs/trading/positionclose">https://www.mql5.com/en/docs/trading/positionclose</a>
      */
-    public void orderClose(Order order) throws JsonProcessingException, MT4Exception {
+    public void orderClose(MT5Order order) throws JsonProcessingException, MT4Exception {
         orderClose(order.getTicket());
     }
 
     /**
-     * Delete a pending order.
+     * Delete a pending order (long ticket for MT5 compatibility).
      *
      * @param ticket        The ticket number.
-     * @param closeIfOpened If true and the order is open, it is closed at market price.  If false and the order is
-     *                      open, an `ERR_INVALID_TICKET` error is raised.
+     * @param closeIfOpened If true and the ticket is a position, it is closed at market price.  If false and the ticket
+     *                      is a position, an error is raised.
      * @throws JsonProcessingException If JSON response fails to parse.
      * @throws MT4Exception            If server had an error.
-     * @see <a href="https://docs.mql4.com/trading/orderdelete">https://docs.mql4.com/trading/orderdelete</a>
-     * @see <a href="https://book.mql4.com/appendix/limits">https://book.mql4.com/appendix/limits</a>
+     * @see <a href="https://www.mql5.com/en/docs/trading/orderdelete">https://www.mql5.com/en/docs/trading/orderdelete</a>
      */
-    public void orderDelete(int ticket, boolean closeIfOpened) throws JsonProcessingException, MT4Exception {
+    public void orderDelete(long ticket, boolean closeIfOpened) throws JsonProcessingException, MT4Exception {
         ObjectNode request = Request.DO_ORDER_DELETE.build()
-                .<ObjectNode>set(TICKET, IntNode.valueOf(ticket))
+                .<ObjectNode>set(TICKET, LongNode.valueOf(ticket))
                 .set(CLOSE_IF_OPENED, BooleanNode.valueOf(closeIfOpened));
         getResponse(request);
     }
@@ -388,40 +385,37 @@ public class MT4Client implements MT4ClientInterface {
      * Delete a pending order.
      *
      * @param order         The order to delete.
-     * @param closeIfOpened If true and the order is open, it is closed at market price.  If false and the order is
-     *                      open, an `ERR_INVALID_TICKET` error is raised.
+     * @param closeIfOpened If true and the ticket is a position, it is closed at market price.  If false and the ticket
+     *                      is a position, an error is raised.
      * @throws JsonProcessingException If JSON response fails to parse.
      * @throws MT4Exception            If server had an error.
-     * @see <a href="https://docs.mql4.com/trading/orderdelete">https://docs.mql4.com/trading/orderdelete</a>
-     * @see <a href="https://book.mql4.com/appendix/limits">https://book.mql4.com/appendix/limits</a>
+     * @see <a href="https://www.mql5.com/en/docs/trading/orderdelete">https://www.mql5.com/en/docs/trading/orderdelete</a>
      */
-    public void orderDelete(Order order, boolean closeIfOpened) throws JsonProcessingException, MT4Exception {
+    public void orderDelete(MT5Order order, boolean closeIfOpened) throws JsonProcessingException, MT4Exception {
         orderDelete(order.getTicket(), closeIfOpened);
     }
 
     /**
-     * Delete a pending order.  If order is open, it is closed at market price.
+     * Delete a pending order.  If it's a position, it is closed at market price.
      *
      * @param ticket The ticket number.
      * @throws JsonProcessingException If JSON response fails to parse.
      * @throws MT4Exception            If server had an error.
-     * @see <a href="https://docs.mql4.com/trading/orderdelete">https://docs.mql4.com/trading/orderdelete</a>
-     * @see <a href="https://book.mql4.com/appendix/limits">https://book.mql4.com/appendix/limits</a>
+     * @see <a href="https://www.mql5.com/en/docs/trading/orderdelete">https://www.mql5.com/en/docs/trading/orderdelete</a>
      */
-    public void orderDelete(int ticket) throws JsonProcessingException, MT4Exception {
+    public void orderDelete(long ticket) throws JsonProcessingException, MT4Exception {
         orderDelete(ticket, DEFAULT_CLOSE_IF_OPENED);
     }
 
     /**
-     * Delete a pending order.  If order is open, it is closed at market price.
+     * Delete a pending order.  If it's a position, it is closed at market price.
      *
      * @param order The order to delete.
      * @throws JsonProcessingException If JSON response fails to parse.
      * @throws MT4Exception            If server had an error.
-     * @see <a href="https://docs.mql4.com/trading/orderdelete">https://docs.mql4.com/trading/orderdelete</a>
-     * @see <a href="https://book.mql4.com/appendix/limits">https://book.mql4.com/appendix/limits</a>
+     * @see <a href="https://www.mql5.com/en/docs/trading/orderdelete">https://www.mql5.com/en/docs/trading/orderdelete</a>
      */
-    public void orderDelete(Order order) throws JsonProcessingException, MT4Exception {
+    public void orderDelete(MT5Order order) throws JsonProcessingException, MT4Exception {
         orderDelete(order.getTicket());
     }
 
@@ -459,14 +453,6 @@ public class MT4Client implements MT4ClientInterface {
         LOG.trace("Request: " + strRequest);
         String strResponse = socket.recvStr();
         LOG.trace(strResponse == null ? "Response is empty." : "Response: " + strResponse);
-
-        // Handle null response (timeout or connection error)
-        if (strResponse == null) {
-            throw MT4Exception.Builder.newInstance()
-                    .setMessage("No response from MT4 server (timeout or connection error)")
-                    .build();
-        }
-
         JsonNode response = objectMapper.readTree(strResponse);
 
         // throw exception for any errors

@@ -1,19 +1,21 @@
-package human.coejoder.mt4client;
+package human.coejoder.mt5client;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * An order modification request to be sent to the server.
+ * An order/position modification request for MetaTrader 5.
  *
- * @see <a href="https://book.mql4.com/trading/ordermodify">https://book.mql4.com/trading/ordermodify</a>
- * @see <a href="https://book.mql4.com/appendix/limits">https://book.mql4.com/appendix/limits</a>
+ * MT5 uses long (ulong in MQL5) for ticket numbers.
+ *
+ * @see <a href="https://www.mql5.com/en/docs/trading/ordermodify">https://www.mql5.com/en/docs/trading/ordermodify</a>
+ * @see <a href="https://www.mql5.com/en/docs/trading/positionmodify">https://www.mql5.com/en/docs/trading/positionmodify</a>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ModifyOrder {
+public class MT5ModifyOrder {
 
     public static class Builder implements OrderStep {
-        private int ticket;
+        private long ticket;
         private Double price;
         private Double sl;
         private Double tp;
@@ -36,26 +38,26 @@ public class ModifyOrder {
          *
          * @return The modify-order request.
          */
-        public ModifyOrder build() {
-            return new ModifyOrder(this);
+        public MT5ModifyOrder build() {
+            return new MT5ModifyOrder(this);
         }
 
         /**
-         * @param ticket The order ticket number.
+         * @param ticket The order/position ticket number.
          * @return This Builder.
          */
         @Override
-        public Builder setOrder(int ticket) {
+        public Builder setOrder(long ticket) {
             this.ticket = ticket;
             return this;
         }
 
         /**
-         * @param order The order to modify.
+         * @param order The order/position to modify.
          * @return This Builder.
          */
         @Override
-        public Builder setOrder(Order order) {
+        public Builder setOrder(MT5Order order) {
             this.ticket = order.getTicket();
             return this;
         }
@@ -107,11 +109,11 @@ public class ModifyOrder {
     }
 
     public interface OrderStep {
-        Builder setOrder(int ticket);
-        Builder setOrder(Order order);
+        Builder setOrder(long ticket);
+        Builder setOrder(MT5Order order);
     }
 
-    public final int ticket;
+    public final long ticket;
     public final Double price;
     public final Double sl;
     public final Double tp;
@@ -120,7 +122,7 @@ public class ModifyOrder {
     @JsonProperty("tp_points")
     public final Integer tpPoints;
 
-    private ModifyOrder(Builder builder) {
+    private MT5ModifyOrder(Builder builder) {
         this.ticket = builder.ticket;
         this.price = builder.price;
         this.sl = builder.sl;

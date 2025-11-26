@@ -2,14 +2,19 @@ package human.coejoder.mt4client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Integration tests for {@link MT4Exception}.
+ * Unit tests for {@link MT4Exception}.
+ * These tests use ObjectMapper only and do not require a live MT4 connection.
  */
-public class TestExceptions extends TestBase {
+public class TestExceptions {
 
+    private static final Logger LOG = LoggerFactory.getLogger(TestExceptions.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
     private static final String TEST_ERROR_CODE_DESCRIPTION = "This is a test error code description.";
     private static final String TEST_ERROR_MESSAGE = "This is a test error message.";
@@ -25,9 +30,9 @@ public class TestExceptions extends TestBase {
         MT4Exception exc = buildExceptionFrom(json);
         LOG.trace(String.format("%s%n = %s", json, exc));
 
-        Assert.assertEquals(exc.errorCode, testErrorCode);
-        Assert.assertEquals(exc.errorCodeDescription, TEST_ERROR_CODE_DESCRIPTION);
-        Assert.assertEquals(exc.message, TEST_ERROR_MESSAGE);
+        assertEquals(exc.errorCode, testErrorCode);
+        assertEquals(exc.errorCodeDescription, TEST_ERROR_CODE_DESCRIPTION);
+        assertEquals(exc.message, TEST_ERROR_MESSAGE);
     }
 
     @Test
@@ -40,9 +45,9 @@ public class TestExceptions extends TestBase {
         MT4Exception exc = buildExceptionFrom(json);
         LOG.trace(String.format("%s%n = %s", json, exc));
 
-        Assert.assertEquals(exc.errorCode, testErrorCode);
-        Assert.assertEquals(exc.errorCodeDescription, TEST_ERROR_CODE_DESCRIPTION);
-        Assert.assertEquals(exc.message, TEST_ERROR_MESSAGE);
+        assertEquals(exc.errorCode, testErrorCode);
+        assertEquals(exc.errorCodeDescription, TEST_ERROR_CODE_DESCRIPTION);
+        assertEquals(exc.message, TEST_ERROR_MESSAGE);
     }
 
     @Test
@@ -55,9 +60,9 @@ public class TestExceptions extends TestBase {
         MT4Exception exc = buildExceptionFrom(json);
         LOG.trace(String.format("%s%n = %s", json, exc));
 
-        Assert.assertEquals(exc.errorCode, testErrorCode);
-        Assert.assertNull(exc.errorCodeDescription);
-        Assert.assertEquals(exc.message, TEST_ERROR_MESSAGE);
+        assertEquals(exc.errorCode, testErrorCode);
+        assertNull(exc.errorCodeDescription);
+        assertEquals(exc.message, TEST_ERROR_MESSAGE);
     }
 
     @Test
@@ -70,9 +75,9 @@ public class TestExceptions extends TestBase {
         MT4Exception exc = buildExceptionFrom(json);
         LOG.trace(String.format("%s%n = %s", json, exc));
 
-        Assert.assertEquals(exc.errorCode, testErrorCode);
-        Assert.assertEquals(exc.errorCodeDescription, TEST_ERROR_CODE_DESCRIPTION);
-        Assert.assertNull(exc.message);
+        assertEquals(exc.errorCode, testErrorCode);
+        assertEquals(exc.errorCodeDescription, TEST_ERROR_CODE_DESCRIPTION);
+        assertNull(exc.message);
     }
 
     @Test
@@ -87,9 +92,9 @@ public class TestExceptions extends TestBase {
         MT4Exception exc = buildExceptionFrom(json);
         LOG.trace(String.format("%s%n = %s", json, exc));
 
-        Assert.assertEquals(exc.errorCode, testErrorCode);
-        Assert.assertEquals(exc.errorCodeDescription, TEST_ERROR_CODE_DESCRIPTION);
-        Assert.assertEquals(exc.message, TEST_ERROR_MESSAGE);
+        assertEquals(exc.errorCode, testErrorCode);
+        assertEquals(exc.errorCodeDescription, TEST_ERROR_CODE_DESCRIPTION);
+        assertEquals(exc.message, TEST_ERROR_MESSAGE);
     }
 
     @Test
@@ -103,9 +108,9 @@ public class TestExceptions extends TestBase {
         MT4Exception exc = buildExceptionFrom(json);
         LOG.trace(String.format("%s%n = %s", json, exc));
 
-        Assert.assertEquals(exc.errorCode, MT4Exception.Code.UNKNOWN);
-        Assert.assertEquals(exc.errorCodeDescription, TEST_ERROR_CODE_DESCRIPTION);
-        Assert.assertEquals(exc.message, TEST_ERROR_MESSAGE);
+        assertEquals(exc.errorCode, MT4Exception.Code.UNKNOWN);
+        assertEquals(exc.errorCodeDescription, TEST_ERROR_CODE_DESCRIPTION);
+        assertEquals(exc.message, TEST_ERROR_MESSAGE);
     }
 
     private MT4Exception buildExceptionFrom(String json) throws JsonProcessingException {

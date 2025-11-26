@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.Getter;
 
 /**
  * A market symbol in MetaTrader 4.
  *
  * @see <a href="https://docs.mql4.com/constants/environment_state/marketinfoconstants">marketinfoconstants</a>
  */
+@Getter
 public class Symbol {
 
     private static final String VOLUME_MIN = "volume_min";
@@ -91,104 +93,6 @@ public class Symbol {
                 .put(SYMBOL, name), SymbolTick.class);
     }
 
-    /**
-     * Symbol name.
-     *
-     * @return the symbol name, eg. EURUSD
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Point size in the quote currency.
-     *
-     * @return <code>SymbolInfoDouble(:symbol, SYMBOL_POINT)</code>
-     */
-    public double getPoint() {
-        return point;
-    }
-
-    /**
-     * Digits after decimal point.
-     *
-     * @return <code>SymbolInfoInteger(:symbol, SYMBOL_DIGITS)</code>
-     */
-    public int getDigits() {
-        return digits;
-    }
-
-    /**
-     * Minimal volume for a deal.
-     *
-     * @return <code>SymbolInfoDouble(:symbol, SYMBOL_VOLUME_MIN)</code>
-     */
-    public double getVolumeMin() {
-        return volumeMin;
-    }
-
-    /**
-     * Minimal volume change step for deal execution
-     *
-     * @return <code>SymbolInfoDouble(:symbol, SYMBOL_VOLUME_STEP)</code>
-     */
-    public double getVolumeStep() {
-        return volumeStep;
-    }
-
-    /**
-     * Maximal volume for a deal.
-     *
-     * @return <code>SymbolInfoDouble(:symbol, SYMBOL_VOLUME_MAX)</code>
-     */
-    public double getVolumeMax() {
-        return volumeMax;
-    }
-
-    /**
-     * Trade contract size in the base currency.
-     *
-     * @return <code>SymbolInfoDouble(:symbol, SYMBOL_TRADE_CONTRACT_SIZE)</code>
-     */
-    public double getTradeContractSize() {
-        return tradeContractSize;
-    }
-
-    /**
-     * Tick value in the deposit currency.
-     *
-     * @return <code>SymbolInfoDouble(:symbol, SYMBOL_TRADE_TICK_VALUE)</code>
-     */
-    public double getTradeTickValue() {
-        return tradeTickValue;
-    }
-
-    /**
-     * Tick size in points.
-     *
-     * @return <code>SymbolInfoDouble(:symbol, SYMBOL_TRADE_TICK_SIZE)</code>
-     */
-    public double getTradeTickSize() {
-        return tradeTickSize;
-    }
-
-    /**
-     * Stop level in points.
-     *
-     * @return <code>SymbolInfoInteger(:symbol, SYMBOL_TRADE_STOPS_LEVEL)</code>
-     */
-    public int getTradeStopsLevel() {
-        return tradeStopsLevel;
-    }
-
-    /**
-     * Order freeze level in points.
-     *
-     * @return <code>SymbolInfoInteger(:symbol, SYMBOL_TRADE_FREEZE_LEVEL)</code>
-     */
-    public int getTradeFreezeLevel() {
-        return tradeFreezeLevel;
-    }
 
     /**
      * Whether symbol selected in Market Watch.

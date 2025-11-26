@@ -731,11 +731,11 @@ public class Indicator {
         this.arguments = arguments;
     }
 
-    String getName() {
+    public String getName() {
         return name;
     }
 
-    ArrayNode getArguments() {
+    public ArrayNode getArguments() {
         return arguments;
     }
 }

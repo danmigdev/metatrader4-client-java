@@ -1,16 +1,19 @@
-package human.coejoder.mt4client;
+package human.coejoder.mt5client;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import human.coejoder.mt4client.OrderType;
 import lombok.Getter;
 
 /**
- * Represents an order in MetaTrader 4.
+ * Represents an order/position in MetaTrader 5.
  *
- * @see <a href="https://docs.mql4.com/trading">Trading</a>>
+ * MT5 uses long (ulong in MQL5) for ticket numbers to support larger ranges.
+ *
+ * @see <a href="https://www.mql5.com/en/docs/trading">Trading</a>
  */
 @Getter
-public class Order {
+public class MT5Order {
 
     private static final String MAGIC_NUMBER = "magic_number";
     private static final String ORDER_TYPE = "order_type";
@@ -19,7 +22,7 @@ public class Order {
     private static final String OPEN_TIME = "open_time";
     private static final String CLOSE_TIME = "close_time";
 
-    private final int ticket;
+    private final long ticket;
     private final int magicNumber;
     private final String symbol;
     private final OrderType orderType;
@@ -39,7 +42,7 @@ public class Order {
     /**
      * Package-private constructor.
      *
-     * @param ticket      The order ticket number.
+     * @param ticket      The order/position ticket number (long for MT5 compatibility).
      * @param magicNumber The identifying (magic) number.
      * @param symbol      The symbol name.
      * @param orderType   The order type.
@@ -51,29 +54,29 @@ public class Order {
      * @param expiration  The expiration date/time.
      * @param sl          The stop-loss.
      * @param tp          The take-profit.
-     * @param profit      The net profit (without swaps or commissions). For open orders, it is the current unrealized
+     * @param profit      The net profit (without swaps or commissions). For open positions, it is the current unrealized
      *                    profit. For closed orders, it is the fixed profit.
      * @param commission  The calculated commission.
      * @param swap        The swap value.
      * @param comment     The comment.
      */
     @JsonCreator
-    public Order(int ticket,
-                 @JsonProperty(MAGIC_NUMBER) int magicNumber,
-                 String symbol,
-                 @JsonProperty(ORDER_TYPE) int orderType,
-                 double lots,
-                 @JsonProperty(OPEN_PRICE) double openPrice,
-                 @JsonProperty(CLOSE_PRICE) double closePrice,
-                 @JsonProperty(OPEN_TIME) String openTime,
-                 @JsonProperty(CLOSE_TIME) String closeTime,
-                 String expiration,
-                 double sl,
-                 double tp,
-                 double profit,
-                 double commission,
-                 double swap,
-                 String comment) {
+    public MT5Order(long ticket,
+                    @JsonProperty(MAGIC_NUMBER) int magicNumber,
+                    String symbol,
+                    @JsonProperty(ORDER_TYPE) int orderType,
+                    double lots,
+                    @JsonProperty(OPEN_PRICE) double openPrice,
+                    @JsonProperty(CLOSE_PRICE) double closePrice,
+                    @JsonProperty(OPEN_TIME) String openTime,
+                    @JsonProperty(CLOSE_TIME) String closeTime,
+                    String expiration,
+                    double sl,
+                    double tp,
+                    double profit,
+                    double commission,
+                    double swap,
+                    String comment) {
         this.ticket = ticket;
         this.magicNumber = magicNumber;
         this.symbol = symbol;
@@ -94,7 +97,7 @@ public class Order {
 
     @Override
     public String toString() {
-        return "Order{" +
+        return "MT5Order{" +
                 "ticket=" + ticket +
                 ", magicNumber=" + magicNumber +
                 ", symbol='" + symbol + '\'' +

@@ -4,10 +4,12 @@ import com.fasterxml.jackson.annotation.JacksonInject;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.Getter;
 
 /**
  * A MetaTrader 4 account.
  */
+@Getter
 public class Account {
 
     private static final String PROPERTY_ID = "property_id";
@@ -49,59 +51,6 @@ public class Account {
         this.company = company;
     }
 
-    /**
-     * Account number.
-     *
-     * @return <code>AccountInfoInteger(ACCOUNT_LOGIN)</code>
-     */
-    public long getLogin() {
-        return login;
-    }
-
-    /**
-     * Account trade mode.
-     *
-     * @return <code>AccountInfoInteger(ACCOUNT_TRADE_MODE)</code>
-     */
-    public AccountTradeMode getTradeMode() {
-        return tradeMode;
-    }
-
-    /**
-     * Client name.
-     *
-     * @return <code>AccountInfoString(ACCOUNT_NAME)</code>
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Trade server name.
-     *
-     * @return <code>AccountInfoString(ACCOUNT_SERVER)</code>
-     */
-    public String getServer() {
-        return server;
-    }
-
-    /**
-     * Account currency.
-     *
-     * @return <code>AccountInfoString(ACCOUNT_CURRENCY)</code>
-     */
-    public String getCurrency() {
-        return currency;
-    }
-
-    /**
-     * Name of a company which serves the account.
-     *
-     * @return <code>AccountInfoString(ACCOUNT_COMPANY)</code>
-     */
-    public String getCompany() {
-        return company;
-    }
 
     /**
      * Account leverage.
